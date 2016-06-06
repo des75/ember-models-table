@@ -1179,9 +1179,9 @@ export default Component.extend({
     /**
      * @param {ModelsTable~ModelsTableColumn} column
      */
-    changeFilterForColumn (column) {
+    changeFilterForColumn (column, value) {
       let cssPropertyName = get(column, 'cssPropertyName');
-      let val = this.$(`.changeFilterForColumn.${cssPropertyName}`)[0].value;
+      let val = value||this.$(`.changeFilterForColumn.${cssPropertyName}`)[0].value;
       set(column, 'filterString', val);
       set(this, 'currentPageNumber', 1);
       this._sendDisplayDataChangedAction();
