@@ -368,6 +368,15 @@ export default Component.extend({
   columnsDropdownTemplate: 'components/models-table/columns-dropdown',
 
   /**
+   * Template dropdown as simple select field
+   *
+   * @type {string}
+   * @name ModelsTable#dropdownFilterTemplate
+   * @default 'components/models-table/filter-select'
+   */
+  dropdownFilterTemplate: 'components/models-table/filter-select',
+
+  /**
    * Template with header row for column names
    *
    * @type {string}
