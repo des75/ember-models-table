@@ -22,6 +22,13 @@ import fmt from '../utils/fmt';
  * @property {function} filterFunction custom function used to filter rows (used if <code>filterWithSelect</code> is false)
  */
 
+/**
+ * @typedef {object} groupedHeader
+ * @property {string} title header for grouped columns
+ * @property {number} colspan HTML colspan attr
+ * @property {number} rowspan HTML rowspan attr
+ */
+
 const keys = Object.keys;
 
 const {
@@ -49,6 +56,7 @@ const NOT_SORTED = -1;
 
 const defaultMessages = {
   searchLabel: 'Search:',
+  searchPlaceholder: '',
   'columns-title': 'Columns',
   'columns-showAll': 'Show All',
   'columns-hideAll': 'Hide All',
@@ -306,6 +314,15 @@ export default Component.extend({
   icons: O.create({}),
 
   /**
+   * List of the additional headers
+   * Used to group columns
+   *
+   * @type {groupedHeader[][]}
+   * @name ModelsTable#groupedHeaders
+   */
+  groupedHeaders: A([]),
+
+  /**
    * Template with First|Prev|Next|Last buttons
    *
    * @type {string}
@@ -358,6 +375,33 @@ export default Component.extend({
    * @default 'components/models-table/filter-select'
    */
   dropdownFilterTemplate: 'components/models-table/filter-select',
+
+  /**
+   * Template with header row for column names
+   *
+   * @type {string}
+   * @name ModelsTable#headerRowSortingTemplate
+   * @default 'components/models-table/header-row-sorting'
+   */
+  headerSortingRowTemplate: 'components/models-table/header-row-sorting',
+
+  /**
+   * Template with header row for column filters
+   *
+   * @type {string}
+   * @name ModelsTable#headerFilteringRowTemplate
+   * @default 'components/models-table/header-row-filtering'
+   */
+  headerFilteringRowTemplate: 'components/models-table/header-row-filtering',
+
+  /**
+   * Template with header rows for columns grouping
+   *
+   * @type {string}
+   * @name ModelsTable#headerFilteringRowTemplate
+   * @default 'components/models-table/header-rows-grouped'
+   */
+  headerGroupedRowsTemplate: 'components/models-table/header-rows-grouped',
 
   /**
    * Template for table's row
@@ -1143,7 +1187,7 @@ export default Component.extend({
      */
     changeFilterForColumn (column, value) {
       let cssPropertyName = get(column, 'cssPropertyName');
-      let val = value || this.$(`.changeFilterForColumn.${cssPropertyName}`)[0].value;
+      let val = value||this.$(`.changeFilterForColumn.${cssPropertyName}`)[0].value;
       set(column, 'filterString', val);
       set(this, 'currentPageNumber', 1);
       this._sendDisplayDataChangedAction();
