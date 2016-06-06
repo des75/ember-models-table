@@ -1,14 +1,21 @@
 <div class="{{classes.outerTableWrapper}}">
-  {{! global filter start }}
-  {{#if showGlobalFilter}}
-    {{partial globalFilterTemplate}}
-  {{/if}}
-  {{! global filter end }}
-  {{! columns dropdown start }}
-  {{#if showColumnsDropdown}}
-    {{partial columnsDropdownTemplate}}
-  {{/if}}
-  {{! columns dropdown end }}
+  <div class="top-toolbar">
+    {{#if toolbarActions}}
+      {{#each toolbarActions as |tbAction|}}
+        {{partial toolbarAction}}
+      {{/each}}
+    {{/if}}
+    {{! global filter start }}
+    {{#if showGlobalFilter}}
+      {{partial globalFilterTemplate}}
+    {{/if}}
+    {{! global filter end }}
+    {{! columns dropdown start }}
+    {{#if showColumnsDropdown}}
+      {{partial columnsDropdownTemplate}}
+    {{/if}}
+    {{! columns dropdown end }}
+  </div>
 
   <!-- Div needed by Firefox to reset floating positioning -->
   <div style="clear:both"/>
