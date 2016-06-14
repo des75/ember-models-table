@@ -525,7 +525,7 @@ export default Component.extend({
       label: label,
       isLink: label !== notLinkLabel,
       isActive: label === currentPageNumber};
-    }));
+                                           }));
   }),
 
   /**
@@ -550,7 +550,8 @@ export default Component.extend({
    * @type {Ember.Object[]}
    * @name ModelsTable#filteredContent
    */
-  filteredContent: computed('filterString', 'data.[]', 'useFilteringByColumns', 'processedColumns.@each.filterString', function () {
+
+  filteredContent: computed('filterString', 'data.[]', 'useFilteringByColumns', 'processedColumns.@each.filterString', 'processedColumns.@each.filterArrayString', function () {
     const {
       processedColumns,
       data,
@@ -589,8 +590,33 @@ export default Component.extend({
       return A(globalSearch);
     }
 
+    var buttonsSearch = globalSearch.filter(row => {
+      return _processedColumns.length ? _processedColumns.every(c => {
+        const filterFor = get(c, 'filteredBy') || get(c, 'propertyName');
+        if (filterFor) {
+          var cellValue = '' + get(row, filterFor);
+          if (get(c, 'useFilter')) {
+            var filterString = get(c, 'filterString');
+
+            if (get(c, 'filterWithButtons')) {
+              var filterArray = get(c, 'filterArray');
+              var flag = false;
+              for(let i in filterArray){
+                if(filterArray[i] && 0 === compare(cellValue, i)) flag = true;
+              }
+
+              return flag;
+            }
+            return true;
+          }
+          return true;
+        }
+        return true;
+      }) : true;
+    });
+
     // search by each column
-    return A(globalSearch.filter(row => {
+    return A(buttonsSearch.filter(row => {
       return _processedColumns.length ? _processedColumns.every(c => {
         const filterFor = get(c, 'filteredBy') || get(c, 'propertyName');
         if (filterFor) {
@@ -685,7 +711,7 @@ export default Component.extend({
       currentPageNumber,
       pageSize,
       arrangedContentLength
-      } = getProperties(this, 'currentPageNumber', 'pageSize', 'arrangedContentLength');
+    } = getProperties(this, 'currentPageNumber', 'pageSize', 'arrangedContentLength');
     return 0 === arrangedContentLength ? 0 : pageSize * (currentPageNumber - 1) + 1;
   }),
 
@@ -701,7 +727,7 @@ export default Component.extend({
       pageSize,
       isLastPage,
       arrangedContentLength
-      } = getProperties(this, 'currentPageNumber', 'pageSize', 'isLastPage', 'arrangedContentLength');
+    } = getProperties(this, 'currentPageNumber', 'pageSize', 'isLastPage', 'arrangedContentLength');
     return isLastPage ? arrangedContentLength : currentPageNumber * pageSize;
   }),
 
@@ -829,6 +855,18 @@ export default Component.extend({
         sortPrecedence: defaultSortPrecedence
       });
 
+      if (get(c, 'filterWithButtons') && get(c, 'useFilter')) {
+        var allValues = get(column, "filterButtonsValues");
+        set(column, "filterArray", allValues);
+
+        if (allValues) {
+
+          set(c, "filterArray", allValues);
+
+          self.set("toolbarButtonsFormat", get(column, "filterButtonsFormat"));
+          self.addObserver(`data.@each.${propertyName}`, self, self._updateFiltersWithButtons);
+        }
+      }
       if (get(c, 'filterWithSelect') && get(c, 'useFilter')) {
         let predefinedFilterOptions = get(column, 'predefinedFilterOptions');
         if (predefinedFilterOptions && predefinedFilterOptions.length && '' !== predefinedFilterOptions[0]) {
@@ -855,6 +893,7 @@ export default Component.extend({
     });
     set(this, 'processedColumns', nColumns);
     this._updateFiltersWithSelect();
+    this._updateFiltersWithButtons();
 
     // Apply initial sorting
     set(this, 'sortProperties', A());
@@ -961,6 +1000,29 @@ export default Component.extend({
           set(column, 'filterString', '');
         }
         set(column, 'filterOptions', filterOptions);
+      }
+    });
+  },
+
+  _updateFiltersWithButtons () {
+    let processedColumns = get(this, 'processedColumns');
+    let data = get(this, 'data');
+    processedColumns.forEach(column => {
+      let allValues = get(column, 'filterButtonsValues');
+      let filterArray = get(column, 'filterArray');
+      let filterWithButtons = get(column, 'filterWithButtons');
+      if (filterWithButtons) {
+        let propertyName = get(column, 'propertyName');
+        let cssPropertyName = get(column, 'cssPropertyName');
+        let filterOptions = A(A(data.filterBy(propertyName)).mapBy(propertyName)).uniq();
+
+
+        filterOptions.forEach(function(option){
+          console.log(option);
+          if('undefined' === typeOf(filterArray[option])){
+            set(column, `filterArray.${option}`, true);
+          }
+        });
       }
     });
   },
@@ -1196,6 +1258,41 @@ export default Component.extend({
     changeFilterString () {
       set(this, 'currentPageNumber', 1);
       this._sendDisplayDataChangedAction();
+    },
+    
+    setButtonFilter(filter, val, col){
+      let selectedValues =  get(col, "filterArray");
+
+      selectedValues[filter] = val;
+
+      let FS = "";
+      for(let i in selectedValues){
+        if(selectedValues[i])
+          FS += i;
+      }
+
+      set(col, "filterArray", selectedValues);
+      set(col, "filterArrayString", FS);
+      set(col, "filterString", "");
+
+      this.rerender();
+    },
+
+    toggleButtonFilter(filter, col){
+      let selectedValues =  get(col, "filterArray");
+      this.actions.setButtonFilter.call(this, filter, !selectedValues[filter], col);
+    },
+    
+    toggleAllButtonFilters(col){
+      let selectedValues =  get(col, "filterArray");
+      let initValue = selectedValues[Object.keys(selectedValues)[0]];
+
+      console.log(initValue);
+      
+      for(let i in selectedValues){
+	this.actions.setButtonFilter.call(this, i, !initValue, col);
+      }
+      
     }
 
   }

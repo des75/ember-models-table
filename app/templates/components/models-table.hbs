@@ -15,6 +15,17 @@
       {{partial columnsDropdownTemplate}}
     {{/if}}
     {{! columns dropdown end }}
+    
+    {{#each processedColumns as |column|}}
+      <div class="icon-filters">
+        {{#if column.filterArray}}
+          {{#each-in column.filterArray as |key value|  }}
+            <button class="btn small primary {{if value "active" }}" {{action (action "toggleButtonFilter" key column) }}><i class="icon {{key}}"></i></button>
+          {{/each-in}}
+	  <button class="btn small primary" {{action (action "toggleAllButtonFilters" column) }}>All</button>
+        {{/if}}
+      </div>
+    {{/each}}
   </div>
 
   <!-- Div needed by Firefox to reset floating positioning -->
