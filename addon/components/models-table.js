@@ -1018,7 +1018,6 @@ export default Component.extend({
 
 
         filterOptions.forEach(function(option){
-          console.log(option);
           if('undefined' === typeOf(filterArray[option])){
             set(column, `filterArray.${option}`, true);
           }
@@ -1127,6 +1126,16 @@ export default Component.extend({
   forceUpdateArrangedContent: observer('filteredContent.[]', 'sortProperties.[]', function () {
     this.notifyPropertyChange('arrangedContent');
   }),
+
+  
+
+  /**
+   * set filterArray value for column
+   **/
+  setButtonFilter(filter, val, col){
+    set(col, `filterArray.${filter}`, val);
+  },
+
 
   actions: {
 
@@ -1259,19 +1268,19 @@ export default Component.extend({
       set(this, 'currentPageNumber', 1);
       this._sendDisplayDataChangedAction();
     },
-    
-    setButtonFilter(filter, val, col){
+
+
+
+    /**
+     * update filterarray
+     **/
+    applyButtonFilter(col){
       let selectedValues =  get(col, "filterArray");
-
-      selectedValues[filter] = val;
-
       let FS = "";
       for(let i in selectedValues){
         if(selectedValues[i])
           FS += i;
       }
-
-      set(col, "filterArray", selectedValues);
       set(col, "filterArrayString", FS);
       set(col, "filterString", "");
 
@@ -1280,21 +1289,25 @@ export default Component.extend({
 
     toggleButtonFilter(filter, col){
       let selectedValues =  get(col, "filterArray");
-      this.actions.setButtonFilter.call(this, filter, !selectedValues[filter], col);
+      this.setButtonFilter.call(this, filter, !selectedValues[filter], col);
+      this.rerender();
     },
-    
+
     toggleAllButtonFilters(col){
       let selectedValues =  get(col, "filterArray");
-      let initValue = selectedValues[Object.keys(selectedValues)[0]];
+      let initValue = !selectedValues[Object.keys(selectedValues)[0]]; // take first and inverse it
 
-      console.log(initValue);
-      
       for(let i in selectedValues){
-	this.actions.setButtonFilter.call(this, i, !initValue, col);
+        this.setButtonFilter.call(this, i, initValue, col);
       }
       
-    }
+      this.rerender();
+    },
 
+    selectRecord(record){
+      this.set("selectedRow", record);
+      this.sendAction("onSelectRecord", record.id);
+    }
   }
 
 });

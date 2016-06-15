@@ -1,6 +1,20 @@
-<button class="btn small" {{action tbAction.action}} style="{{toolbarElementCss}}">
-{{#if tbAction.icon}}
-<i class="icon {{tbAction.icon}}"></i>
+{{#if tbAction.confirmation }}
+  {{#button-with-confirmation
+     onConfirm=(action tbAction.action)
+     buttonClasses="btn small"
+     enabled=tbAction.enabled
+     style=toolbarElementCss
+    }}
+    {{#if tbAction.icon}}
+      <i class="icon {{tbAction.icon}}"></i>
+    {{/if}}
+    {{tbAction.title}}
+  {{/button-with-confirmation}}
+{{else}}
+  <button class="btn small" {{action tbAction.action}} style="{{toolbarElementCss}}">
+    {{#if tbAction.icon}}
+      <i class="icon {{tbAction.icon}}"></i>
+    {{/if}}
+    {{tbAction.title}}
+  </button>
 {{/if}}
-{{tbAction.title}}
-</button>
